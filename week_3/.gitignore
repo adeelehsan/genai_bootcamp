@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment Variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Downloads directory - ignore contents but keep directory
+downloads/*
+!downloads/.gitkeep
+
+# ChromaDB - ignore contents but keep directory
+chroma_db/*
+!chroma_db/.gitkeep
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log

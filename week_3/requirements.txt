@@ -1,0 +1,43 @@
+# Core LLM providers
+groq
+openai
+
+# Web framework
+streamlit
+
+# Configuration
+python-dotenv
+
+# LangChain and RAG
+langchain
+langchain-openai
+langchain-groq
+langchain-huggingface
+langchain-community
+langchain-text-splitters
+
+# Vector store
+chromadb
+
+# News article extraction
+newspaper3k
+
+# PDF processing
+pypdf
+
+# YouTube video processing
+yt-dlp
+openai-whisper
+ffmpeg-python
+
+# Speech-to-text and text-to-speech
+elevenlabs
+audio-recorder-streamlit
+
+# Embeddings
+sentence-transformers
+
+# Additional dependencies
+lxml
+lxml_html_clean
+pillow
