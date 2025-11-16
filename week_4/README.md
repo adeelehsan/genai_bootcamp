@@ -105,12 +105,6 @@ cp .env.example .env
 # Optional: LANGCHAIN_API_KEY=your_langsmith_api_key_here
 ```
 
-### Verify Installation
-
-```bash
-python test_setup.py
-```
-
 ## Usage
 
 ### Option 1: Streamlit UI (Recommended)
