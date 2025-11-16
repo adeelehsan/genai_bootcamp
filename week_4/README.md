@@ -7,12 +7,10 @@ A professional AI-powered blog generation system built with **LangGraph**, **Ope
 - **AI-Powered Generation**: Uses OpenAI's GPT-5 models for intelligent content creation
 - **Multilingual Support**: Generate blogs in 15 languages
 - **Multi-Stage Workflow**: Separate title generation and content creation stages using LangGraph
-- **Beautiful UI**: Modern Streamlit interface with black sidebar theme
 - **REST API**: FastAPI backend for programmatic access
 - **History Management**: Save and download previously generated blogs
 - **Customizable**: Adjust model, temperature, language, and other parameters
 - **Markdown Support**: Generated content in clean, formatted Markdown
-- **SEO-Optimized**: Titles and content optimized for search engines in any language
 
 ## Multilingual Support
 
@@ -21,8 +19,6 @@ The blog generator supports **15 languages**! Generate professional content in:
 - English, Spanish, French, German, Italian
 - Portuguese, Chinese, Japanese, Korean
 - Arabic, Hindi, Russian, Dutch, Turkish, Polish
-
-**See [MULTILINGUAL.md](MULTILINGUAL.md) for detailed multilingual documentation.**
 
 ## Architecture
 
@@ -33,7 +29,7 @@ Input Topic → Title Creation → Content Generation → Complete Blog
 ```
 
 **Workflow Components:**
-1. **Title Creation Node**: Generates SEO-friendly titles
+1. **Title Creation Node**: Generates titles
 2. **Content Generation Node**: Creates detailed blog content
 3. **State Management**: Maintains topic, language, title, and content through the workflow
 
@@ -202,34 +198,6 @@ langgraph dev
 
 Open browser to `http://127.0.0.1:8123`
 
-## Configuration
-
-### Model Options
-
-- **gpt-5**: Most advanced GPT-5 model
-- **gpt-5-mini**: Fast and cost-effective (default)
-
-### Temperature Settings
-
-- **0.0-0.3**: More focused and deterministic
-- **0.4-0.7**: Balanced creativity (recommended)
-- **0.8-2.0**: More creative and varied
-
-### Language Selection
-
-Choose from 15 supported languages in the UI or API
-
-## Development
-
-### Code Quality
-
-The codebase follows professional Python standards:
-- Type hints throughout
-- Comprehensive docstrings
-- Proper error handling
-- Logging for debugging
-- Modular architecture
-
 ### Testing API Locally
 
 ```bash
@@ -241,14 +209,6 @@ curl -X POST http://localhost:8000/blogs \
   -H "Content-Type: application/json" \
   -d '{"topic": "Climate Change Solutions", "language": "English"}'
 ```
-
-## Example Use Cases
-
-1. **Content Marketing**: Generate blog posts for your website
-2. **International SEO**: Create keyword-optimized content in multiple languages
-3. **Research Summaries**: Synthesize information on topics
-4. **Educational Content**: Create learning materials in native languages
-5. **Thought Leadership**: Develop opinion pieces
 
 ## Technologies Used
 
