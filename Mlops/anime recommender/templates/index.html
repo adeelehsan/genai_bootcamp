@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Recommender - Find Your Perfect Anime</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-in;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.8s ease-in;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 280px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .result-section.active {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .result-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .result-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            line-height: 1.8;
+            font-size: 1.05rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .result-content h1, .result-content h2, .result-content h3 {
+            color: #667eea;
+            margin: 20px 0 10px 0;
+            font-weight: 700;
+        }
+
+        .result-content h1 { font-size: 1.8rem; }
+        .result-content h2 { font-size: 1.5rem; }
+        .result-content h3 { font-size: 1.3rem; }
+
+        .result-content strong {
+            font-weight: 700;
+            color: #333;
+        }
+
+        .result-content em {
+            font-style: italic;
+            color: #555;
+        }
+
+        .result-content ul, .result-content ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        .result-content li {
+            margin: 10px 0;
+        }
+
+        .result-content p {
+            margin: 15px 0;
+        }
+
+        .result-content code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .error-message {
+            display: none;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .error-message.active {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .suggestions {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .suggestions h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chip {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #e0e0e0;
+            font-size: 0.95rem;
+        }
+
+        .chip:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .main-card {
+                padding: 25px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎌 Anime Recommender</h1>
+            <p class="subtitle">Discover your next favorite anime with AI-powered recommendations</p>
+        </header>
+
+        <div class="main-card">
+            <div class="input-section">
+                <label for="query">What kind of anime are you looking for?</label>
+                <textarea
+                    id="query"
+                    placeholder="E.g., 'I want an action anime with great animation' or 'Recommend a romance anime with a happy ending'"
+                ></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" id="recommendBtn" onclick="getRecommendation()">
+                    🔍 Get Recommendations
+                </button>
+            </div>
+
+            <div class="suggestions">
+                <h3>💡 Try these suggestions:</h3>
+                <div class="suggestion-chips">
+                    <div class="chip" onclick="fillSuggestion('Recommend action anime with great fight scenes')">Action anime</div>
+                    <div class="chip" onclick="fillSuggestion('Looking for romance anime with happy ending')">Romance anime</div>
+                    <div class="chip" onclick="fillSuggestion('Suggest psychological thriller anime')">Thriller</div>
+                    <div class="chip" onclick="fillSuggestion('Comedy anime to watch with friends')">Comedy</div>
+                    <div class="chip" onclick="fillSuggestion('Anime with strong female lead')">Strong female lead</div>
+                    <div class="chip" onclick="fillSuggestion('Anime similar to Attack on Titan')">Similar to AOT</div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Finding the perfect anime for you...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="result-section" id="resultSection">
+                <div class="result-header">
+                    <span class="result-icon">✨</span>
+                    <h2 class="result-title">Your Anime Recommendations</h2>
+                </div>
+                <div class="result-content" id="resultContent"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Made with ❤️ using LangChain & Flask</p>
+        </footer>
+    </div>
+
+    <script>
+        // Convert markdown to HTML
+        function convertMarkdownToHTML(text) {
+            // Convert headers
+            text = text.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            text = text.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            text = text.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+            // Convert bold
+            text = text.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+
+            // Convert italic
+            text = text.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+
+            // Convert line breaks
+            text = text.replace(/\n\n/g, '</p><p>');
+            text = text.replace(/\n/g, '<br>');
+
+            // Convert numbered lists
+            text = text.replace(/^\d+\.\s+(.*$)/gim, '<li>$1</li>');
+            text = text.replace(/(<li>.*<\/li>)/s, '<ol>$1</ol>');
+
+            // Wrap in paragraphs
+            text = '<p>' + text + '</p>';
+
+            // Clean up empty paragraphs
+            text = text.replace(/<p><\/p>/g, '');
+            text = text.replace(/<p>\s*<\/p>/g, '');
+
+            return text;
+        }
+
+        // Fill textarea with suggestion
+        function fillSuggestion(text) {
+            document.getElementById('query').value = text;
+            document.getElementById('query').focus();
+        }
+
+        // Get recommendation from backend
+        async function getRecommendation() {
+            const query = document.getElementById('query').value.trim();
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            const errorMessage = document.getElementById('errorMessage');
+            const recommendBtn = document.getElementById('recommendBtn');
+
+            // Validation
+            if (!query) {
+                showError('Please enter a query to get recommendations!');
+                return;
+            }
+
+            // Hide previous results and errors
+            resultSection.classList.remove('active');
+            errorMessage.classList.remove('active');
+
+            // Show loading
+            loading.classList.add('active');
+            recommendBtn.disabled = true;
+
+            try {
+                const response = await fetch('/get', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'msg=' + encodeURIComponent(query)
+                });
+
+                if (response.ok) {
+                    const result = await response.text();
+                    // Convert markdown to HTML
+                    resultContent.innerHTML = convertMarkdownToHTML(result);
+                    resultSection.classList.add('active');
+                } else {
+                    const errorText = await response.text();
+                    showError(errorText || 'Failed to get recommendations');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                loading.classList.remove('active');
+                recommendBtn.disabled = false;
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = '⚠️ ' + message;
+            errorMessage.classList.add('active');
+        }
+
+
+        // Allow Enter key to submit (Ctrl+Enter for new line)
+        document.getElementById('query').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
+                e.preventDefault();
+                getRecommendation();
+            }
+        });
+
+        // Check health on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                if (data.status !== 'healthy') {
+                    showError('System is initializing. Please wait a moment and try again.');
+                }
+            } catch (error) {
+                console.error('Health check failed:', error);
+            }
+        });
+    </script>
+</body>
+</html>
