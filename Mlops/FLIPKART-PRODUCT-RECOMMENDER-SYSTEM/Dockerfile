@@ -8,22 +8,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 ## Work directory inside the docker container
 WORKDIR /app
 
-## Installing system dependencies
+## Installing system dependancies
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-## Copying all contents from local to container
+## Copying ur all contents from local to app
 COPY . .
 
-## Install Python dependencies
+## Run setup.py
 RUN pip install --no-cache-dir -e .
 
-## Expose only flask port
+# Used PORTS
 EXPOSE 5000
 
-## Run the Flask app
-CMD ["python", "app/application.py"]
-
-
+# Run the app 
+CMD ["python", "app.py"]
