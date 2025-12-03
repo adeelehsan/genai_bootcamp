@@ -23,7 +23,10 @@ RUN pip install --no-cache-dir -e .
 ## Expose only flask port
 EXPOSE 5000
 
-## Run the Flask app
-CMD ["python", "app/application.py"]
+## Make startup script executable
+RUN chmod +x startup.sh
+
+## Run the Flask app with startup checks
+CMD ["./startup.sh"]
 
 

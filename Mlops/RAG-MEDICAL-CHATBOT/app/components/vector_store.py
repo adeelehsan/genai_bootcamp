@@ -21,11 +21,13 @@ def load_vector_store():
                 allow_dangerous_deserialization=True
             )
         else:
-            logger.warning("No vectore store found..")
+            logger.error(f"Vector store not found at {DB_FAISS_PATH}")
+            raise CustomException(f"Vector store directory not found: {DB_FAISS_PATH}. Please ensure vectorstore/ directory is included in the Docker image.")
 
     except Exception as e:
         error_message = CustomException("Failed to load vectorstore" , e)
         logger.error(str(error_message))
+        raise error_message
 
 # Creating new vectorstore function
 def save_vector_store(text_chunks):
