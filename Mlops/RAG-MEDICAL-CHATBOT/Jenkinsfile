@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = 'eu-north-1'
+        ECR_REGION = 'eu-north-1'              // ECR repository region
+        APPRUNNER_REGION = 'eu-west-1'         // App Runner service region (Ireland)
         ECR_REPO = 'my-repo'
         IMAGE_TAG = 'latest'
         SERVICE_NAME = 'llmops-medical-service'
@@ -23,7 +24,7 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
                     script {
                         def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
-                        def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
+                        def ecrUrl = "${accountId}.dkr.ecr.${env.ECR_REGION}.amazonaws.com/${env.ECR_REPO}"
                         def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
 
                         sh """
@@ -31,7 +32,7 @@ pipeline {
                         cd ${PROJECT_DIR}
 
                         # Login to ECR
-                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
+                        aws ecr get-login-password --region ${ECR_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
 
                         # Build Docker image from the project directory
                         docker build -t ${env.ECR_REPO}:${IMAGE_TAG} .
@@ -50,25 +51,25 @@ pipeline {
             }
         }
 
-//          stage('Deploy to AWS App Runner') {
-//             steps {
-//                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
-//                     script {
-//                         def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
-//                         def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
-//                         def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
-//
-//                         echo "Triggering deployment to AWS App Runner..."
-//
-//                         sh """
-//                         SERVICE_ARN=\$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${SERVICE_NAME}'].ServiceArn" --output text --region ${AWS_REGION})
-//                         echo "Found App Runner Service ARN: \$SERVICE_ARN"
-//
-//                         aws apprunner start-deployment --service-arn \$SERVICE_ARN --region ${AWS_REGION}
-//                         """
-//                     }
-//                 }
-//             }
-//         }
+         stage('Deploy to AWS App Runner') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
+                    script {
+                        def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
+                        def ecrUrl = "${accountId}.dkr.ecr.${env.ECR_REGION}.amazonaws.com/${env.ECR_REPO}"
+                        def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
+
+                        echo "Triggering deployment to AWS App Runner in ${APPRUNNER_REGION}..."
+
+                        sh """
+                        SERVICE_ARN=\$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${SERVICE_NAME}'].ServiceArn" --output text --region ${APPRUNNER_REGION})
+                        echo "Found App Runner Service ARN: \$SERVICE_ARN"
+
+                        aws apprunner start-deployment --service-arn \$SERVICE_ARN --region ${APPRUNNER_REGION}
+                        """
+                    }
+                }
+            }
+        }
     }
 }

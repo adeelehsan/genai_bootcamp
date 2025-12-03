@@ -21,7 +21,7 @@ COPY . .
 RUN pip install --no-cache-dir -e .
 
 ## Expose only flask port
-EXPOSE 5000
+EXPOSE 8000
 
 ## Run the Flask app
 CMD ["python", "app/application.py"]
