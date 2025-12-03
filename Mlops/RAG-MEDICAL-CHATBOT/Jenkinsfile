@@ -34,8 +34,8 @@ pipeline {
                         # Login to ECR
                         aws ecr get-login-password --region ${ECR_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
 
-                        # Build Docker image from the project directory
-                        docker build -t ${env.ECR_REPO}:${IMAGE_TAG} .
+                        # Build Docker image for AMD64 platform (AWS App Runner compatibility)
+                        docker buildx build --platform linux/amd64 -t ${env.ECR_REPO}:${IMAGE_TAG} .
 
                         # Run Trivy security scan
                         trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json ${env.ECR_REPO}:${IMAGE_TAG} || true
