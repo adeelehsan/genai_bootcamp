@@ -1,0 +1,15 @@
+logs/
+venv/
+.env
+LLMOPS_3.egg-info/
+results/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.DS_Store
+
+# Kubernetes secrets (never commit actual secrets)
+manifests/secrets.yaml
+manifests/*-secret.yaml
+**/secrets.yaml
