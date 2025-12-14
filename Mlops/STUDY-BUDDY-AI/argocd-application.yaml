@@ -20,7 +20,7 @@ spec:
   # Sync policy
   syncPolicy:
     automated:
-      prune: true      # Delete resources that are no longer in Git
+      prune: false     # Don't delete resources that are no longer in Git
       selfHeal: true   # Automatically sync when Git changes
       allowEmpty: false
     syncOptions:
