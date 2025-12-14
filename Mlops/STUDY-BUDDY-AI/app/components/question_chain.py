@@ -10,17 +10,20 @@ from langchain_core.runnables import RunnablePassthrough
 
 from app.components.llm import load_llm
 from app.components.question_schemas import MCQQuestion, FillBlankQuestion
-from app.config.config import MAX_RETRIES
+from app.config.config import MAX_RETRIES, PERSONAS
 from app.common.logger import get_logger
 from app.common.custom_exception import CustomException
 
 logger = get_logger(__name__)
 
-# MCQ Prompt Template
-MCQ_PROMPT_TEMPLATE = """Generate a {difficulty} multiple-choice question about {topic}.
+# MCQ Prompt Template with Persona
+MCQ_PROMPT_TEMPLATE = """{persona_prompt}
+
+Generate a {difficulty} multiple-choice question about {topic}.
+Your question style should be: {question_style}
 
 Return ONLY a JSON object with these exact fields:
-- 'question': A clear, specific question
+- 'question': A clear, specific question that matches your persona's style
 - 'options': An array of exactly 4 possible answers
 - 'correct_answer': One of the options that is the correct answer
 
@@ -35,11 +38,14 @@ Example format:
 
 Your response:"""
 
-# Fill Blank Prompt Template
-FILL_BLANK_PROMPT_TEMPLATE = """Generate a {difficulty} fill-in-the-blank question about {topic}.
+# Fill Blank Prompt Template with Persona
+FILL_BLANK_PROMPT_TEMPLATE = """{persona_prompt}
+
+Generate a {difficulty} fill-in-the-blank question about {topic}.
+Your question style should be: {question_style}
 
 Return ONLY a JSON object with these exact fields:
-- 'question': A sentence with '___' marking where the blank should be
+- 'question': A sentence with '___' marking where the blank should be (match your persona's style)
 - 'answer': The correct word or phrase that belongs in the blank
 
 Example format:
@@ -53,14 +59,17 @@ Example format:
 Your response:"""
 
 
-def create_mcq_chain(model_name: str = "Groq - LLaMA 3.1 8B"):
-    """Create LCEL chain for MCQ generation."""
+def create_mcq_chain(model_name: str = "Groq - LLaMA 3.1 8B", persona: str = "Friendly Tutor"):
+    """Create LCEL chain for MCQ generation with persona."""
     try:
-        logger.info(f"Creating MCQ chain using LCEL with model: {model_name}")
+        logger.info(f"Creating MCQ chain using LCEL with model: {model_name}, persona: {persona}")
 
         llm = load_llm(model_display_name=model_name)
         if llm is None:
             raise CustomException("LLM not loaded")
+
+        # Get persona configuration
+        persona_config = PERSONAS.get(persona, PERSONAS["Friendly Tutor"])
 
         # Create parser for MCQ
         parser = PydanticOutputParser(pydantic_object=MCQQuestion)
@@ -73,6 +82,8 @@ def create_mcq_chain(model_name: str = "Groq - LLaMA 3.1 8B"):
             {
                 "topic": lambda x: x["topic"],
                 "difficulty": lambda x: x["difficulty"],
+                "persona_prompt": lambda x: persona_config["system_prompt"],
+                "question_style": lambda x: persona_config["question_style"],
                 "format_instructions": lambda x: parser.get_format_instructions()
             }
             | prompt
@@ -80,7 +91,7 @@ def create_mcq_chain(model_name: str = "Groq - LLaMA 3.1 8B"):
             | parser
         )
 
-        logger.info("Successfully created MCQ chain using LCEL")
+        logger.info("Successfully created MCQ chain using LCEL with persona")
         return mcq_chain
 
     except Exception as e:
@@ -89,14 +100,17 @@ def create_mcq_chain(model_name: str = "Groq - LLaMA 3.1 8B"):
         return None
 
 
-def create_fill_blank_chain(model_name: str = "Groq - LLaMA 3.1 8B"):
-    """Create LCEL chain for Fill Blank generation."""
+def create_fill_blank_chain(model_name: str = "Groq - LLaMA 3.1 8B", persona: str = "Friendly Tutor"):
+    """Create LCEL chain for Fill Blank generation with persona."""
     try:
-        logger.info(f"Creating Fill Blank chain using LCEL with model: {model_name}")
+        logger.info(f"Creating Fill Blank chain using LCEL with model: {model_name}, persona: {persona}")
 
         llm = load_llm(model_display_name=model_name)
         if llm is None:
             raise CustomException("LLM not loaded")
+
+        # Get persona configuration
+        persona_config = PERSONAS.get(persona, PERSONAS["Friendly Tutor"])
 
         # Create parser for Fill Blank
         parser = PydanticOutputParser(pydantic_object=FillBlankQuestion)
@@ -109,6 +123,8 @@ def create_fill_blank_chain(model_name: str = "Groq - LLaMA 3.1 8B"):
             {
                 "topic": lambda x: x["topic"],
                 "difficulty": lambda x: x["difficulty"],
+                "persona_prompt": lambda x: persona_config["system_prompt"],
+                "question_style": lambda x: persona_config["question_style"],
                 "format_instructions": lambda x: parser.get_format_instructions()
             }
             | prompt
@@ -116,7 +132,7 @@ def create_fill_blank_chain(model_name: str = "Groq - LLaMA 3.1 8B"):
             | parser
         )
 
-        logger.info("Successfully created Fill Blank chain using LCEL")
+        logger.info("Successfully created Fill Blank chain using LCEL with persona")
         return fill_blank_chain
 
     except Exception as e:
@@ -125,16 +141,16 @@ def create_fill_blank_chain(model_name: str = "Groq - LLaMA 3.1 8B"):
         return None
 
 
-def generate_mcq(topic: str, difficulty: str = 'medium', model_name: str = "Groq - LLaMA 3.1 8B") -> MCQQuestion:
-    """Generate MCQ using LCEL chain with retry logic."""
+def generate_mcq(topic: str, difficulty: str = 'medium', model_name: str = "Groq - LLaMA 3.1 8B", persona: str = "Friendly Tutor") -> MCQQuestion:
+    """Generate MCQ using LCEL chain with retry logic and persona."""
     try:
-        chain = create_mcq_chain(model_name=model_name)
+        chain = create_mcq_chain(model_name=model_name, persona=persona)
         if chain is None:
             raise CustomException("MCQ chain could not be created")
 
         for attempt in range(MAX_RETRIES):
             try:
-                logger.info(f"Generating MCQ for topic '{topic}' with difficulty '{difficulty}' (attempt {attempt + 1}/{MAX_RETRIES})")
+                logger.info(f"Generating MCQ for topic '{topic}' with difficulty '{difficulty}' and persona '{persona}' (attempt {attempt + 1}/{MAX_RETRIES})")
 
                 # Invoke LCEL chain with input dict
                 question = chain.invoke({"topic": topic, "difficulty": difficulty})
@@ -156,16 +172,16 @@ def generate_mcq(topic: str, difficulty: str = 'medium', model_name: str = "Groq
         raise CustomException("MCQ generation failed", e)
 
 
-def generate_fill_blank(topic: str, difficulty: str = 'medium', model_name: str = "Groq - LLaMA 3.1 8B") -> FillBlankQuestion:
-    """Generate Fill Blank using LCEL chain with retry logic."""
+def generate_fill_blank(topic: str, difficulty: str = 'medium', model_name: str = "Groq - LLaMA 3.1 8B", persona: str = "Friendly Tutor") -> FillBlankQuestion:
+    """Generate Fill Blank using LCEL chain with retry logic and persona."""
     try:
-        chain = create_fill_blank_chain(model_name=model_name)
+        chain = create_fill_blank_chain(model_name=model_name, persona=persona)
         if chain is None:
             raise CustomException("Fill Blank chain could not be created")
 
         for attempt in range(MAX_RETRIES):
             try:
-                logger.info(f"Generating Fill Blank for topic '{topic}' with difficulty '{difficulty}' (attempt {attempt + 1}/{MAX_RETRIES})")
+                logger.info(f"Generating Fill Blank for topic '{topic}' with difficulty '{difficulty}' and persona '{persona}' (attempt {attempt + 1}/{MAX_RETRIES})")
 
                 # Invoke LCEL chain with input dict
                 question = chain.invoke({"topic": topic, "difficulty": difficulty})

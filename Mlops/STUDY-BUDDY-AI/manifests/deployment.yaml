@@ -28,4 +28,3 @@ spec:
             secretKeyRef:
               name: openai-api-secret
               key: OPENAI_API_KEY
-

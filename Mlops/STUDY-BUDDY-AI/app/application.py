@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import streamlit as st
 from dotenv import load_dotenv
 from app.components.helpers import QuizManager, rerun
-from app.config.config import AVAILABLE_MODELS
+from app.config.config import AVAILABLE_MODELS, PERSONAS
 
 load_dotenv()
 
@@ -44,6 +44,18 @@ def main():
     model_config = AVAILABLE_MODELS[model_name]
     st.sidebar.info(f"Provider: {model_config['provider'].upper()}\nModel: {model_config['model_name']}")
 
+    # Persona Selection
+    persona_name = st.sidebar.selectbox(
+        "Select Chatbot Persona",
+        options=list(PERSONAS.keys()),
+        index=0,
+        help="Choose a personality for your study buddy"
+    )
+
+    # Show persona info
+    persona_config = PERSONAS[persona_name]
+    st.sidebar.info(f"🎭 **{persona_name}**\n\n{persona_config['description']}")
+
     question_type = st.sidebar.selectbox(
         "Select Question Type",
         ["Multiple Choice", "Fill in the Blank"],
@@ -69,10 +81,10 @@ def main():
         else:
             st.session_state.quiz_submitted = False
 
-            # Use LCEL-based chain for question generation with selected model
-            with st.spinner(f"Generating quiz using {model_name}..."):
+            # Use LCEL-based chain for question generation with selected model and persona
+            with st.spinner(f"Generating quiz using {model_name} as {persona_name}..."):
                 success = st.session_state.quiz_manager.generate_questions(
-                    topic, question_type, difficulty, num_questions, model_name
+                    topic, question_type, difficulty, num_questions, model_name, persona_name
                 )
 
             st.session_state.quiz_generated = success

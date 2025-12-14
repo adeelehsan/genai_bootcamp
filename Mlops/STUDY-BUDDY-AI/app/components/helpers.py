@@ -23,8 +23,8 @@ class QuizManager:
         self.user_answers = []
         self.results = []
 
-    def generate_questions(self, topic: str, question_type: str, difficulty: str, num_questions: int, model_name: str = "Groq - LLaMA 3.1 8B"):
-        """Generate questions using LCEL chains with selected model."""
+    def generate_questions(self, topic: str, question_type: str, difficulty: str, num_questions: int, model_name: str = "Groq - LLaMA 3.1 8B", persona: str = "Friendly Tutor"):
+        """Generate questions using LCEL chains with selected model and persona."""
         self.questions = []
         self.user_answers = []
         self.results = []
@@ -32,8 +32,8 @@ class QuizManager:
         try:
             for _ in range(num_questions):
                 if question_type == "Multiple Choice":
-                    # Use LCEL chain for MCQ generation with selected model
-                    question = generate_mcq(topic, difficulty.lower(), model_name=model_name)
+                    # Use LCEL chain for MCQ generation with selected model and persona
+                    question = generate_mcq(topic, difficulty.lower(), model_name=model_name, persona=persona)
 
                     self.questions.append({
                         'type': 'MCQ',
@@ -43,8 +43,8 @@ class QuizManager:
                     })
 
                 else:
-                    # Use LCEL chain for Fill Blank generation with selected model
-                    question = generate_fill_blank(topic, difficulty.lower(), model_name=model_name)
+                    # Use LCEL chain for Fill Blank generation with selected model and persona
+                    question = generate_fill_blank(topic, difficulty.lower(), model_name=model_name, persona=persona)
 
                     self.questions.append({
                         'type': 'Fill in the blank',
