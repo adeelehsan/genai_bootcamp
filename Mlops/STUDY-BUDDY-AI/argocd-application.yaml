@@ -25,6 +25,8 @@ spec:
       allowEmpty: false
     syncOptions:
     - CreateNamespace=true
+    - ServerSideApply=true
+    - PruneLast=true
     retry:
       limit: 5
       backoff:
@@ -32,15 +34,11 @@ spec:
         factor: 2
         maxDuration: 3m
 
-  # Ignore manually created secrets
+  # Ignore manually created secrets completely
   ignoreDifferences:
   - group: ""
     kind: Secret
     name: groq-api-secret
-    jsonPointers:
-    - /data
   - group: ""
     kind: Secret
     name: openai-api-secret
-    jsonPointers:
-    - /data
