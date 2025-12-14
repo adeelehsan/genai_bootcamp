@@ -25,8 +25,7 @@ spec:
       allowEmpty: false
     syncOptions:
     - CreateNamespace=true
-    - ServerSideApply=true
-    - PruneLast=true
+    - RespectIgnoreDifferences=true
     retry:
       limit: 5
       backoff:
@@ -39,6 +38,12 @@ spec:
   - group: ""
     kind: Secret
     name: groq-api-secret
+    jqPathExpressions:
+    - .data
+    - .metadata
   - group: ""
     kind: Secret
     name: openai-api-secret
+    jqPathExpressions:
+    - .data
+    - .metadata
