@@ -83,8 +83,18 @@ pipeline {
                 script {
                     kubeconfig(credentialsId: 'kubeconfig', serverUrl: 'https://192.168.49.2:8443') {
                         sh '''
-                        argocd login 34.45.193.5:31704 --username admin --password $(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) --insecure
-                        argocd app sync study
+                        # Get ArgoCD admin password
+                        ARGOCD_PASSWORD=$(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+
+                        # Login to ArgoCD (update with your LoadBalancer IP and port)
+                        # If using Nginx on standard ports (80/443):
+                        argocd login 34.171.44.90 --username admin --password $ARGOCD_PASSWORD --insecure --grpc-web
+
+                        # If using specific port (e.g., HTTPS NodePort 30529):
+                        # argocd login 34.171.44.90:30529 --username admin --password $ARGOCD_PASSWORD --insecure
+
+                        # Sync your ArgoCD application (update 'study' with your app name)
+                        argocd app sync study-buddy-app
                         '''
                     }
                 }
