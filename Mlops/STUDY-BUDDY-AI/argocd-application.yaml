@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: study-buddy-app
+  namespace: argocd
+spec:
+  project: default
+
+  # Source - Your GitHub repository
+  source:
+    repoURL: https://github.com/adeelehsan/genai_bootcamp.git
+    targetRevision: main
+    path: Mlops/STUDY-BUDDY-AI/manifests
+
+  # Destination - Your Kubernetes cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true      # Delete resources that are no longer in Git
+      selfHeal: true   # Automatically sync when Git changes
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  # Ignore manually created secrets
+  ignoreDifferences:
+  - group: ""
+    kind: Secret
+    name: groq-api-secret
+    jsonPointers:
+    - /data
+  - group: ""
+    kind: Secret
+    name: openai-api-secret
+    jsonPointers:
+    - /data

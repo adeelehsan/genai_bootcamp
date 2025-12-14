@@ -12,4 +12,4 @@ __pycache__/
 # Kubernetes secrets (never commit actual secrets)
 manifests/secrets.yaml
 manifests/*-secret.yaml
-**/secrets.yaml
+**/secrets.yamlkubeconfig
