@@ -187,6 +187,76 @@ RULES:
 Available categories: Computers, Monitors, Printers, Accessories, Networking
 {auth_status}"""
 
+    def _clean_response(self, text: str) -> str:
+        """Remove any function call notation from response."""
+        import re
+        # Remove patterns like (function=name>{"args"}<function) or similar
+        text = re.sub(r'\(function[^)]*\)', '', text)
+        text = re.sub(r'<function>', '', text)
+        text = re.sub(r'<function', '', text)
+        text = re.sub(r'function>', '', text)
+        return text.strip()
+
+    def _get_result_limit(self, message: str) -> int:
+        """Extract the number of results user wants, or 0 for all."""
+        import re
+        message_lower = message.lower()
+
+        # Patterns like "top 10", "first 5", "best 3", "show 10", "give me 5"
+        patterns = [
+            r'\btop\s+(\d+)',
+            r'\bfirst\s+(\d+)',
+            r'\bbest\s+(\d+)',
+            r'\bshow\s+(\d+)',
+            r'\bgive\s+me\s+(\d+)',
+            r'\b(\d+)\s+products?\b',
+            r'\b(\d+)\s+monitors?\b',
+            r'\b(\d+)\s+computers?\b',
+            r'\b(\d+)\s+printers?\b',
+            r'\b(\d+)\s+accessories\b',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, message_lower)
+            if match:
+                return int(match.group(1))
+        return 0  # 0 means show all
+
+    def _limit_product_results(self, result: str, limit: int) -> str:
+        """Limit product results to specified number and format as list."""
+        import re
+
+        lines = result.split('\n')
+        output_lines = []
+        product_count = 0
+        total_products = 0
+
+        # First pass: count total products
+        for line in lines:
+            if line.strip().startswith('[') and ']' in line:
+                total_products += 1
+
+        # Second pass: format output
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            # Check if this is a product line (starts with [SKU])
+            if stripped.startswith('[') and ']' in stripped:
+                product_count += 1
+                if limit <= 0 or product_count <= limit:
+                    # Format as numbered list item
+                    output_lines.append(f"{product_count}. {stripped}")
+
+        # Create header
+        if limit > 0 and limit < total_products:
+            header = f"Showing top {limit} of {total_products} products:\n"
+        else:
+            header = f"Found {total_products} products:\n"
+
+        return header + '\n'.join(output_lines)
+
     def chat(self, user_message: str, history: list = None) -> str:
         """Process user message and return response."""
         if history is None:
@@ -216,15 +286,17 @@ Available categories: Computers, Monitors, Printers, Accessories, Networking
             # Execute the tool
             tool_result = self._execute_tool(tool_name, tool_args)
 
-            # For product and order listings, return results directly
+            # For product listings: limit results if user requested specific number
             if tool_name in ["list_products", "search_products"]:
-                return tool_result + "\n\nLet me know if you'd like more details on any product!"
+                limit = self._get_result_limit(user_message)
+                result = self._limit_product_results(tool_result, limit)
+                return self._clean_response(result) + "\n\nLet me know if you'd like more details on any product!"
 
             if tool_name == "list_orders":
-                return tool_result + "\n\nLet me know if you'd like details on any specific order!"
+                return self._clean_response(tool_result) + "\n\nLet me know if you'd like details on any specific order!"
 
             if tool_name == "get_order":
-                return tool_result
+                return self._clean_response(tool_result)
 
             # For other tools, let LLM format the response
             messages.append(assistant_message)
