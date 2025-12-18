@@ -1,0 +1,25 @@
+CHALLENGE 1: Empty Results from MCP Client
+-------------------------------------------
+Problem: MCP client connected but returned empty strings.
+
+Solution: Assumed response was at result.result but actual data was at result.content[0].text
+
+
+CHALLENGE 2: Search Doesn't Handle Plurals
+------------------------------------------
+Problem: "monitors" returned 0 results, "monitor" returned 40 results. Server does exact substring matching.
+
+Solution: Added fallback to retry without trailing 's':
+    if "No products found" in result and query.endswith('s'):
+        result = self.call_tool("search_products", {"query": query[:-1]})
+
+
+CHALLENGE 3: LLM Not Displaying Tool Results
+--------------------------------------------
+Problem: Chatbot called tools and got 3791 chars of product data, but final response didn't show products to user.
+
+Solution: Added explicit instruction after tool results:
+    messages.append({
+        "role": "user",
+        "content": "Display these results to me as a helpful assistant. Use plain text, not code. Show the top 10 products."
+    })
